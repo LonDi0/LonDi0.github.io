@@ -1,0 +1,204 @@
+%PDF-1.4
+%‚„œ”
+1 0 obj
+<< /Type /Catalog /Pages 2 0 R >>
+endobj
+2 0 obj
+<< /Type /Pages /Kids [ 4 0 R 6 0 R ] /Count 2 >>
+endobj
+3 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>
+endobj
+4 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Resources << /Font << /F1 3 0 R >> >> /Contents 5 0 R >>
+endobj
+5 0 obj
+<< /Length 3478 >>
+stream
+BT
+/F1 11 Tf
+58 760 Td
+(Rotation Strategies on Lotus Based on Triple-Smoke Setups) Tj
+0 -15 Td
+(Long Dio, Shibo Lei, Jiming Li) Tj
+0 -15 Td
+(Manuscript, 2026) Tj
+0 -15 Td
+() Tj
+0 -15 Td
+(Abstract) Tj
+0 -15 Td
+(This manuscript presents a practical rotation framework for Lotus in VALORANT using triple-smoke) Tj
+0 -15 Td
+(team composition structures. The goal is not to model an esports meta exhaustively, but to) Tj
+0 -15 Td
+(provide a reproducible decision protocol that links utility timing, map control, and risk-aware) Tj
+0 -15 Td
+(repositioning. We formalize common tactical states, define trigger thresholds for pivot calls,) Tj
+0 -15 Td
+(and evaluate outcomes in scripted scrim simulations. Results indicate that disciplined smoke) Tj
+0 -15 Td
+(layering combined with short communication windows improves post-contact survival and increases) Tj
+0 -15 Td
+(successful site conversion under moderate opponent adaptation.) Tj
+0 -15 Td
+() Tj
+0 -15 Td
+(Keywords) Tj
+0 -15 Td
+(VALORANT, Lotus, rotation strategy, smoke timing, tactical communication, game analytics) Tj
+0 -15 Td
+() Tj
+0 -15 Td
+(1. Introduction) Tj
+0 -15 Td
+(Lotus is characterized by three bomb sites, rotating doors, and short transition corridors.) Tj
+0 -15 Td
+(These properties amplify the value of information and make delayed pivots highly sensitive to) Tj
+0 -15 Td
+(utility usage. While many public guides describe site executes in isolation, fewer frameworks) Tj
+0 -15 Td
+(offer a full-cycle method that links opening pressure, neutral reset, and second-wave) Tj
+0 -15 Td
+(commitment. This paper treats rotation as a state machine and argues that triple-smoke lineups) Tj
+0 -15 Td
+(can stabilize decision quality when supported by explicit timing rules.) Tj
+0 -15 Td
+() Tj
+0 -15 Td
+(2. Map-State Representation) Tj
+0 -15 Td
+(We define each mid-round state as S = \(C, U, I, T\), where C denotes controlled sectors, U) Tj
+0 -15 Td
+(denotes remaining smoke charges and support utility, I denotes confirmed enemy information, and) Tj
+0 -15 Td
+(T denotes round time bucket. A pivot is recommended only when two conditions are satisfied:) Tj
+0 -15 Td
+(first, at least one defensive anchor is probabilistically displaced by pressure utility; second,) Tj
+0 -15 Td
+(the expected corridor risk on the target path remains below a preset threshold derived from) Tj
+0 -15 Td
+(recent engagement logs.) Tj
+0 -15 Td
+() Tj
+0 -15 Td
+(3. Triple-Smoke Rotation Protocol) Tj
+0 -15 Td
+(The proposed protocol uses three role assignments: Initiator-Smoke, Anchor-Smoke, and Delay-) Tj
+0 -15 Td
+(Smoke. Phase A applies contact pressure and a low-cost fake marker. Phase B enforces an eight-) Tj
+0 -15 Td
+(to-twelve-second information window in which no hard commit occurs unless a high-confidence pick) Tj
+0 -15 Td
+(is achieved. Phase C triggers rotation and executes staggered smoke drops: entry choke cover at) Tj
+0 -15 Td
+(t0, anti-retake lane denial at t0 plus 2 seconds, and late-site isolation at t0 plus 6 seconds.) Tj
+0 -15 Td
+(The temporal spacing reduces overlap waste and preserves one survivability layer for post-plant.) Tj
+0 -15 Td
+() Tj
+0 -15 Td
+(4. Communication and Call Discipline) Tj
+0 -15 Td
+(Communication design is treated as part of the algorithm. We use compact call tokens: HOLD,) Tj
+0 -15 Td
+(PIVOT, CUT, and FREEZE. Each token maps to a predefined utility and movement policy, minimizing) Tj
+0 -15 Td
+(cognitive overhead during high-pressure transitions. Team review data suggests that reducing) Tj
+ET
+endstream
+endobj
+6 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Resources << /Font << /F1 3 0 R >> >> /Contents 7 0 R >>
+endobj
+7 0 obj
+<< /Length 2508 >>
+stream
+BT
+/F1 11 Tf
+58 760 Td
+(call vocabulary lowers contradictory movement decisions and shortens reaction latency after the) Tj
+0 -15 Td
+(pivot trigger.) Tj
+0 -15 Td
+() Tj
+0 -15 Td
+(5. Evaluation Setup) Tj
+0 -15 Td
+(We conducted repeated custom-scrim scenarios with mirrored skill assumptions and controlled) Tj
+0 -15 Td
+(economy states. The baseline policy used conventional double-smoke commits without staged timing) Tj
+0 -15 Td
+(offsets. Compared with baseline, the triple-smoke protocol improved successful site entry rate,) Tj
+0 -15 Td
+(reduced first-five-second post-plant deaths, and increased round conversion in medium-) Tj
+0 -15 Td
+(information rounds. Gains were smaller in full-information rounds, where both strategies already) Tj
+0 -15 Td
+(perform near tactical ceiling.) Tj
+0 -15 Td
+() Tj
+0 -15 Td
+(6. Practical Playbook) Tj
+0 -15 Td
+(For ranked application, players should first memorize two safe fallback routes per site pair and) Tj
+0 -15 Td
+(pre-assign smoke ownership before buy phase ends. During execution, teams should avoid) Tj
+0 -15 Td
+(collapsing all smokes into one burst unless defending utility is already exhausted. If the first) Tj
+0 -15 Td
+(contact fails and utility parity is lost, the recommended policy is FREEZE and regroup rather) Tj
+0 -15 Td
+(than forced late entry. This converts chaotic rounds into recoverable setups.) Tj
+0 -15 Td
+() Tj
+0 -15 Td
+(7. Limitations and Future Work) Tj
+0 -15 Td
+(This study is intentionally entertainment-oriented and does not claim competitive universality.) Tj
+0 -15 Td
+(Opponent adaptation, patch updates, and agent pool shifts can alter optimal timing windows.) Tj
+0 -15 Td
+(Future versions can add VOD-derived Bayesian updates and map-side asymmetry modeling to improve) Tj
+0 -15 Td
+(robustness across rank brackets.) Tj
+0 -15 Td
+() Tj
+0 -15 Td
+(8. Conclusion) Tj
+0 -15 Td
+(A triple-smoke framework on Lotus can be expressed as a concise and teachable rotation) Tj
+0 -15 Td
+(algorithm. By coupling staged utility timing with explicit call discipline, teams obtain more) Tj
+0 -15 Td
+(stable mid-round decisions and cleaner post-plant structures. The approach is lightweight enough) Tj
+0 -15 Td
+(for casual teams while still reflecting formal strategic reasoning.) Tj
+0 -15 Td
+() Tj
+0 -15 Td
+(References) Tj
+0 -15 Td
+([1] Riot Games, VALORANT Map Notes, 2026 Edition. [2] Internal Scrim Logbook, Entertainment) Tj
+0 -15 Td
+(Research Group, 2026. [3] Team Communication Taxonomy for Tactical FPS, Working Notes, 2026.) Tj
+0 -15 Td
+() Tj
+ET
+endstream
+endobj
+xref
+0 8
+0000000000 65535 f 
+0000000015 00000 n 
+0000000064 00000 n 
+0000000129 00000 n 
+0000000199 00000 n 
+0000000325 00000 n 
+0000003855 00000 n 
+0000003981 00000 n 
+trailer
+<< /Size 8 /Root 1 0 R >>
+startxref
+6541
+%%EOF

@@ -1,0 +1,213 @@
+\documentclass[runningheads]{llncs}
+\usepackage{fontspec}
+\usepackage{xeCJK}
+\setmainfont{TeX Gyre Termes}
+\setCJKmainfont[AutoFakeSlant=true]{FandolSong-Regular}
+\setCJKsansfont{FandolHei-Regular}
+\setCJKmonofont{FandolFang-Regular}
+\usepackage{amsmath,amssymb,booktabs}
+\usepackage{algorithm}
+\usepackage{algpseudocode}
+\usepackage[hidelinks]{hyperref}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta,positioning,calc}
+
+\title{一种王者荣耀拆塔速推流的可行性分析与实现}
+\titlerunning{王者荣耀事件驱动拆塔速推流}
+
+\author{杜宇龙}
+\authorrunning{杜宇龙}
+
+\institute{娱乐策略研究组\\
+\email{contact@example.com}}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+本文从事件驱动系统视角研究王者荣耀中的拆塔速推流。与常见“按分路重复循环推进”的思路不同，本文提出“节奏积分账本”与“分路分配有限状态机”组合框架，并由轻量调度器在兵线同步、视野突增、目标计时与撤退安全变化时触发动作。该方法强调在崩盘概率受控前提下完成结构性收益转化。受控自定义对局观察表明，该框架可提高前两座外塔转化稳定性，并降低爆发推进失败后的波动。
+\keywords{王者荣耀 \and 拆塔速推 \and 事件驱动宏观控制 \and 有限状态机 \and 团队口令协议}
+\end{abstract}
+
+\section{引言}
+社区语境中的“速推”常被简化为短口号，实际执行却容易在信息噪声下失真。多数失败并非源于单次操作，而是三类条件错位：兵线几何、守方显露模式、撤退通道质量。
+因此，本文将拆塔速推建模为事件驱动控制问题：维护结构推进积分，并且仅在“收益门槛”和“安全门槛”同时满足时发起推进动作。
+
+\section{运行假设与遥测信号}
+在每个决策时刻 $t$，系统采样以下信号：
+\begin{itemize}
+\item 兵线同步得分 $W_t$（中边路波次协同程度）；
+\item 守方可见性向量 $V_t$（敌方近期显位信息）；
+\item 中立目标计时桶 $O_t$（暴君/主宰窗口）；
+\item 逃生就绪度 $E_t$（位移技能与撤退路径可用性）。
+\end{itemize}
+状态统一表示为 $S_t=(W_t,V_t,O_t,E_t)$，并在每个沟通周期增量更新。
+
+\section{节奏积分账本模型}
+本文不直接求解长时域最优路径，而是维护可再生标量资源“节奏积分” $B_t$：
+\[
+B_{t+1}=\min\!\left(B_{\max},\;
+\eta B_t
++\xi\cdot \mathrm{WaveSync}_t
++\omega\cdot \mathrm{VisionEdge}_t
+-\chi\cdot \mathrm{SkirmishDrag}_t\right),
+\]
+其中 $\eta\in(0,1]$ 为记忆衰减因子。
+
+解释如下：
+\begin{itemize}
+\item 兵线同步与视野优势会为后续推进充能；
+\item 低收益拉扯会消耗积分；
+\item 高强度拆塔动作必须在积分达标后才允许触发。
+\end{itemize}
+
+同时定义崩盘风险估计：
+\[
+H_t=\sigma(\rho_0+\rho_1F_t+\rho_2C_t-\rho_3R_t),
+\]
+其中 $F_t$ 为战争迷雾不确定性，$C_t$ 为关键技能冷却缺口，$R_t$ 为撤退路径质量。
+
+\begin{table}[t]
+\centering
+\caption{事件驱动控制器的核心标量}
+\begin{tabular}{ll}
+\toprule
+信号 & 含义 \\
+\midrule
+$B_t$ & 当前可用于结构转化的节奏积分 \\
+$H_t$ & 崩盘风险估计（0 到 1） \\
+$W_t$ & 分路兵线同步得分 \\
+$V_t$ & 守方可见性质量 \\
+$E_t$ & 逃生准备度 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\section{分路分配有限状态机}
+宏观推进由四个状态组成：
+\begin{enumerate}
+\item \textbf{STACK}：堆线与阵型重置；
+\item \textbf{DRAG}：利用目标姿态或假动作牵扯守方；
+\item \textbf{MELT}：短时拆塔爆发；
+\item \textbf{SCREEN}：封堵侧翼并确保撤退走廊。
+\end{enumerate}
+
+\begin{figure}[t]
+\centering
+\begin{tikzpicture}[
+  >=Latex,
+  node distance=10mm and 16mm,
+  state/.style={draw, rounded corners, minimum width=22mm, minimum height=8mm, align=center, font=\small}
+]
+\node[state] (stack) {STACK};
+\node[state, right=of stack] (drag) {DRAG};
+\node[state, right=of drag] (melt) {MELT};
+\node[state, below=of drag] (screen) {SCREEN};
+
+\draw[->] (stack) -- node[above, font=\scriptsize] {$W_t\uparrow,\ V_t\uparrow$} (drag);
+\draw[->] (drag) -- node[above, font=\scriptsize] {$B_t\ge B_{\text{melt}}$} (melt);
+\draw[->] (melt) -- node[right, font=\scriptsize] {守方回补} (screen);
+\draw[->] (screen) -- node[below, font=\scriptsize] {重置完成} (stack);
+\draw[->,bend left=22] (drag.north) to node[above, font=\scriptsize, fill=white, inner sep=1pt] {$H_t>H_{\max}$} (stack.north);
+\draw[->,bend right=24] (melt.south) to node[right, font=\scriptsize, fill=white, inner sep=1pt] {积分不足} (screen.east);
+\end{tikzpicture}
+\caption{分路分配有限状态机。}
+\label{fig:hok-fsa-zh}
+\end{figure}
+
+\section{口令协议}
+团队沟通层采用五个互斥口令，避免语义重叠：
+\begin{table}[t]
+\centering
+\caption{事件驱动拆塔流口令语义}
+\begin{tabular}{p{1.7cm}p{3.1cm}p{5.6cm}}
+\toprule
+口令 & 触发条件 & 强制动作 \\
+\midrule
+\texttt{STACK} & 积分不足或兵线不同步 & 控接触深度，堆下一波线，保持关键技能对等。 \\
+\texttt{DRAG} & 中立目标窗口开启且可见性占优 & 通过目标姿态或假推进拉扯守方站位。 \\
+\texttt{MELT} & $B_t\!\ge\!B_{\text{melt}}$ 且 $H_t\!\le\!H_{\max}$ & 发起短时拆塔爆发，严格执行停线。 \\
+\texttt{SCREEN} & 爆发后检测到回补或侧翼风险 & 封堵回防通道并保护撤退路线。 \\
+\texttt{RESET} & 风险突增或口令不同步 & 立即撤出，清理节奏债务并返回 STACK。 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\section{事件驱动调度器}
+调度器处理事件集合
+\[
+\mathcal{E}=\{\mathrm{WAVE\_SYNC},\mathrm{VIS\_SPIKE},\mathrm{OBJ\_OPEN},
+\mathrm{DANGER\_SPIKE},\mathrm{COOLDOWN\_READY}\}.
+\]
+与时域最大化策略不同，本文方案在每个事件边界即时发令。
+
+\begin{algorithm}[H]
+\caption{拆塔速推事件调度流程}
+\begin{algorithmic}[1]
+\Require 状态 $S_t$，节奏积分 $B_t$，风险估计 $H_t$
+\Ensure 口令 \{\texttt{STACK}, \texttt{DRAG}, \texttt{MELT}, \texttt{SCREEN}, \texttt{RESET}\}
+\If{$H_t > H_{\max}$}
+  \State \Return \texttt{RESET}
+\EndIf
+\If{事件为 \texttt{WAVE\_SYNC} 且 $B_t < B_{\text{melt}}$}
+  \State \Return \texttt{STACK}
+\EndIf
+\If{事件为 \texttt{OBJ\_OPEN} 且可见性优势为正}
+  \State \Return \texttt{DRAG}
+\EndIf
+\If{$B_t \ge B_{\text{melt}}$ 且 $H_t \le H_{\max}$ 且逃生就绪}
+  \State \Return \texttt{MELT}
+\EndIf
+\If{爆发结束或侧翼风险上升}
+  \State \Return \texttt{SCREEN}
+\EndIf
+\State \Return \texttt{STACK}
+\end{algorithmic}
+\end{algorithm}
+
+\begin{figure}[t]
+\centering
+\begin{tikzpicture}[x=1.0cm,y=0.75cm,>=Latex]
+\draw[->] (0,0) -- (10.5,0) node[right] {时间};
+\draw (0,1.4) node[left, align=right] {\scriptsize 积分\\\scriptsize 窗口};
+\draw[thick,blue!70] (0.2,1.1) -- (2.4,1.1) -- (2.4,1.7) -- (5.3,1.7) -- (5.3,1.0) -- (8.8,1.0);
+\draw[dashed] (5.3,0) -- (5.3,2.1) node[above, font=\scriptsize] {MELT 爆发};
+\draw[dashed] (7.4,0) -- (7.4,2.1) node[above, font=\scriptsize] {SCREEN};
+\draw[thick,teal!80!black] (0.8,0.45) -- (4.9,0.45) node[midway, above, font=\scriptsize] {STACK/DRAG};
+\draw[thick,orange!85!black] (5.4,0.45) -- (7.3,0.45) node[midway, above, font=\scriptsize] {MELT};
+\draw[thick,purple!80!black] (7.5,0.45) -- (9.4,0.45) node[midway, above, font=\scriptsize] {SCREEN/RESET};
+\end{tikzpicture}
+\caption{事件相位与积分消耗时序示意。}
+\label{fig:hok-timeline-zh}
+\end{figure}
+
+\section{受控评估}
+我们将本文调度器与“团战优先”宏观基线在受控自定义对局中比较。观测到的趋势包括：
+\begin{itemize}
+\item 前两座外塔转化稳定性更高；
+\item 拆塔爆发后的崩盘事件更少；
+\item 推进失败后因 \texttt{RESET} 分支而恢复更快。
+\end{itemize}
+收益主要体现在“信息不完全但可争夺”的中盘回合。
+
+\section{失效场景与实践注意}
+若队伍违反口令纪律，尤其在 \texttt{MELT} 后继续无条件追击，系统优势会快速衰减。另一个失效点是可见性信号陈旧：当 $V_t$ 滞后真实战场时，\texttt{DRAG} 容易高估牵扯效果并诱发提前崩盘。
+
+\section{结论}
+本文表明，王者荣耀拆塔速推流可被实现为“节奏积分账本 + 有限状态机 + 事件调度器”的工程化系统。该表述不同于固定循环推进脚本，并在娱乐向实战场景中提供更清晰的失效处理能力。
+
+\paragraph{致谢.}
+本文档用于个人主页模板演示与娱乐化策略写作场景。
+
+\begin{thebibliography}{3}
+\bibitem{hok-note}
+腾讯游戏：王者荣耀赛季平衡性更新说明（2026）
+
+\bibitem{macro-log}
+娱乐策略研究组：自定义宏观对局日志（2026）
+
+\bibitem{event-control}
+杜宇龙：MOBA 结构推进的事件驱动宏观调度方法，工作笔记（2026）
+\end{thebibliography}
+
+\end{document}

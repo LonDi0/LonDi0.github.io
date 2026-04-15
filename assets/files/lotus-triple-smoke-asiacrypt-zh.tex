@@ -1,0 +1,191 @@
+\documentclass[runningheads]{llncs}
+\usepackage{fontspec}
+\usepackage{xeCJK}
+\setmainfont{TeX Gyre Termes}
+\setCJKmainfont[AutoFakeSlant=true]{FandolSong-Regular}
+\setCJKsansfont{FandolHei-Regular}
+\setCJKmonofont{FandolFang-Regular}
+\usepackage{amsmath,amssymb,booktabs}
+\usepackage{algorithm}
+\usepackage{algpseudocode}
+\usepackage[hidelinks]{hyperref}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta,positioning}
+
+\title{基于三烟位的莲华古城转点策略}
+\titlerunning{三烟位莲华古城转点策略}
+
+\author{杜宇龙 \and 雷世博 \and 李基铭}
+\authorrunning{杜宇龙等}
+
+\institute{娱乐策略研究组\\
+\email{contact@example.com}}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+本文围绕 VALORANT 地图“莲华古城”提出一种三烟位转点决策框架，将中盘转点抽象为带触发条件的状态迁移问题。本文目标是提供可复用、可讨论的娱乐向策略方法，而非给出竞技最优解。基于自定义房间的受控对局记录，我们观察到：分层烟幕时序与低延迟口令协同可提升进点稳定性，降低首波接触后的早期减员，并在中等信息条件下提高回合转化率。
+\keywords{VALORANT \and 莲华古城 \and 转点策略 \and 烟幕时序 \and 战术沟通}
+\end{abstract}
+
+\section{引言}
+莲华古城具备三包点、可旋转门与短连接通道等结构特征，使得“信息价值高、容错窗口短”成为其中盘决策的核心。社区攻略常聚焦单点爆弹模板，但实战更常见的是“试探--冻结--转点--再进点”的循环。基于此，本文尝试用形式化描述统一这些决策步骤，并讨论三烟位配置是否能够提升团队执行一致性。
+
+\section{模型与记号}
+定义时刻 $t$ 的战术状态为
+\[
+S_t = (C_t, U_t, I_t, \tau_t),
+\]
+其中 $C_t$ 表示控制区域，$U_t$ 表示可用道具，$I_t$ 表示已验证敌方信息，$\tau_t$ 表示时间分桶。
+从通道 $L_s$ 转向 $L_d$ 的触发条件为：
+\begin{enumerate}
+\item 依据当前信息估计，$L_d$ 上的阻力期望低于阈值 $\theta$；
+\item 通过试探道具或假动作，至少有一名防守方锚点出现高概率位移。
+\end{enumerate}
+
+\section{三烟位协议设计}
+本文将烟幕责任拆分为三类：
+\begin{itemize}
+\item \textbf{先手烟}：在承诺时刻 $t_0$ 封锁主入口视线；
+\item \textbf{锚定烟}：在 $t_0 + 2$ 秒抑制防守侧二次前压；
+\item \textbf{延迟烟}：在 $t_0 + 6$ 秒切断回防连线。
+\end{itemize}
+
+\begin{figure}[t]
+\centering
+\begin{tikzpicture}[
+  >=Latex,
+  node distance=8mm and 10mm,
+  stage/.style={draw, rounded corners, minimum height=7mm, minimum width=20mm, align=center, font=\small}
+]
+\node[stage] (probe) {试探};
+\node[stage, right=of probe] (freeze) {冻结};
+\node[stage, right=of freeze] (pivot) {转点判定};
+\node[stage, right=of pivot] (exec) {执行进点};
+\node[stage, right=of exec] (post) {下包后};
+
+\draw[->] (probe) -- (freeze);
+\draw[->] (freeze) -- (pivot);
+\draw[->] (pivot) -- (exec);
+\draw[->] (exec) -- (post);
+\draw[->,bend left=28] (freeze.north) to node[midway, above, font=\scriptsize, fill=white, inner sep=1pt] {置信度不足} (probe.north);
+\draw[->,bend left=28] (pivot.south) to node[midway, below, font=\scriptsize, fill=white, inner sep=1pt] {道具不足} (freeze.south);
+\end{tikzpicture}
+\caption{三烟位转点状态迁移示意图}
+\label{fig:state-flow-zh}
+\end{figure}
+
+\begin{table}[t]
+\centering
+\caption{三烟位转点阶段配置}
+\begin{tabular}{lll}
+\toprule
+阶段 & 时间窗口 & 主要目标 \\
+\midrule
+试探阶段 & 0--12s & 逼迫对手交互并收集接触信息 \\
+冻结阶段 & 12--20s & 抑制误承诺并验证转点信号 \\
+转点执行阶段 & 20--32s & 分层落烟并完成通道切换 \\
+下包后阶段 & $>$32s & 保留至少一枚防回防烟幕 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{figure}[t]
+\centering
+\begin{tikzpicture}[x=0.95cm,y=0.9cm,>=Latex]
+\draw[->,thick] (0,0) -- (9,0) node[right] {时间（秒）};
+\foreach \x/\lbl in {0/0,2/2,6/6,8/8} {
+  \draw (\x,0.08) -- (\x,-0.08) node[below=2pt] {\scriptsize \lbl};
+}
+\draw[very thick,blue!70] (0,0.6) -- (0,1.25);
+\draw[very thick,teal!70!black] (2,0.6) -- (2,1.25);
+\draw[very thick,orange!90!black] (6,0.6) -- (6,1.25);
+\node[above=2pt,blue!70] at (0,1.25) {\scriptsize 先手烟};
+\node[above=2pt,teal!70!black] at (2,1.25) {\scriptsize 锚定烟};
+\node[above=2pt,orange!90!black] at (6,1.25) {\scriptsize 延迟烟};
+\end{tikzpicture}
+\caption{分层落烟时序示意图}
+\label{fig:timeline-zh}
+\end{figure}
+
+\section{沟通口令与执行纪律}
+为降低沟通噪声，本文采用四个紧凑口令：\texttt{HOLD}、\texttt{PIVOT}、\texttt{CUT}、\texttt{FREEZE}。这些口令在本文中具有明确的操作语义。
+\begin{table}[t]
+\centering
+\caption{四类口令的触发条件与动作策略}
+\begin{tabular}{p{1.8cm}p{2.9cm}p{5.6cm}}
+\toprule
+口令 & 触发信号 & 团队动作策略 \\
+\midrule
+\texttt{HOLD} & 接触信息不完整，且道具优势不足 & 维持当前控图形状，不做硬承诺，仅在低风险角度做交换。 \\
+\texttt{PIVOT} & 目标通道阻力估计低于阈值 $\theta$ & 启动转点并按三烟位时序执行，优先保证双人进点存活链路。 \\
+\texttt{CUT} & 已确认回防通道或侧翼路径出现 & 用一枚道具加一名卡位队员切断该通道，阻止防守方重组。 \\
+\texttt{FREEZE} & 道具预算低于 $u_{\min}$ 或沟通不同步 & 短暂停止前压，先统一口令与站位，再次评估是否转点。 \\
+\bottomrule
+\end{tabular}
+\end{table}
+通过固定语义映射，团队可减少“同词异义”的误解，缩短触发后的执行延迟。
+
+\section{算法化决策视角}
+为避免“经验描述难复盘”，本文引入轻量化评分函数来选择目标通道：
+\[
+\mathrm{Score}(L_d) = \alpha \cdot \mathrm{InfoGain}
+ + \beta \cdot \mathrm{UtilityReserve}
+ - \gamma \cdot \mathrm{ExpectedResistance}
+ - \delta \cdot \mathrm{TravelRisk}.
+\]
+若所有候选通道分数均不为正，则策略回退到 \texttt{HOLD} 或 \texttt{FREEZE}；否则选择分数最高通道作为转点候选。
+
+\begin{algorithm}[H]
+\caption{莲华古城转点判定过程}
+\begin{algorithmic}[1]
+\Require 当前状态 $S_t$，阻力阈值 $\theta$，最小道具预算 $u_{\min}$，评分权重 $(\alpha,\beta,\gamma,\delta)$
+\Ensure 动作标签 \{\texttt{HOLD}, \texttt{PIVOT}, \texttt{FREEZE}\}
+\If{$U_t < u_{\min}$}
+  \State \Return \texttt{FREEZE}
+\EndIf
+\State 计算所有可达目标通道的 $\mathrm{Score}(L_d)$
+\State 令 $L^\star \gets \arg\max_{L_d}\mathrm{Score}(L_d)$
+\If{$\mathrm{Score}(L^\star)\le 0$}
+  \State \Return \texttt{HOLD}
+\EndIf
+\If{$\Pr[\mathrm{resistance}(L^\star)\le \theta \mid I_t]$ 足够高}
+  \State \Return \texttt{PIVOT}
+\Else
+  \State \Return \texttt{HOLD}
+\EndIf
+\end{algorithmic}
+\end{algorithm}
+在实现层面，各项分量均保持在有界标量区间内并按沟通周期更新，因此在线计算开销为每通道常数级，适合实战口令节奏。
+
+\section{实验观察}
+在受控自定义对局中，我们将该策略与“双烟位立即承诺”基线比较。观察结果包括：
+\begin{itemize}
+\item 在中等信息回合中，进点成功率更高；
+\item 首次接触后五秒内的减员更低；
+\item 延迟转点回合的回合转化率更优。
+\end{itemize}
+当信息接近完全透明时，两类策略差距显著缩小。图~\ref{fig:state-flow-zh} 与图~\ref{fig:timeline-zh} 概括了本文策略的状态流与时序结构。
+
+\section{局限性与后续工作}
+本文定位为娱乐向策略论文，不主张通用于所有段位或版本。补丁更新、英雄平衡与对手自适应会改变时序最优解。后续可结合 VOD 先验与在线贝叶斯更新提高跨版本鲁棒性。
+
+\section{结论}
+三烟位莲华古城转点可以被压缩为可教学、可复盘的轻量决策协议。通过分层烟幕时序与口令化协作，团队能够降低中盘波动并改善下包后结构质量。
+
+\paragraph{致谢.}
+本文档用于个人主页模板演示与娱乐化策略写作场景。
+
+\begin{thebibliography}{3}
+\bibitem{riot-map}
+Riot Games: VALORANT 地图更新说明（2026）
+
+\bibitem{internal-log}
+娱乐策略研究组：自定义对局记录（2026）
+
+\bibitem{comm-taxonomy}
+杜宇龙，雷世博，李基铭：战术 FPS 团队沟通口令分类法，工作笔记（2026）
+\end{thebibliography}
+
+\end{document}

@@ -1,0 +1,22 @@
+﻿<svg width="1200" height="640" viewBox="0 0 1200 640" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
+  <title id="title">Map Placeholder</title>
+  <desc id="desc">Stylized map-like placeholder illustration generated for this project</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1200" y2="640" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#ECF3FF"/>
+      <stop offset="1" stop-color="#CFDEF2"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="640" rx="24" fill="url(#bg)"/>
+  <path d="M0 122H1200" stroke="#B9CDE8" stroke-width="2"/>
+  <path d="M0 266H1200" stroke="#B9CDE8" stroke-width="2"/>
+  <path d="M0 409H1200" stroke="#B9CDE8" stroke-width="2"/>
+  <path d="M221 0V640" stroke="#B9CDE8" stroke-width="2"/>
+  <path d="M443 0V640" stroke="#B9CDE8" stroke-width="2"/>
+  <path d="M702 0V640" stroke="#B9CDE8" stroke-width="2"/>
+  <path d="M955 0V640" stroke="#B9CDE8" stroke-width="2"/>
+  <path d="M116 520C210 482 306 453 401 420C520 378 656 309 771 268C865 235 952 206 1090 191" stroke="#81A7D6" stroke-width="16" stroke-linecap="round"/>
+  <path d="M157 118C236 165 319 204 413 247C505 289 593 343 683 391C756 429 828 465 885 520" stroke="#6E97CA" stroke-width="11" stroke-linecap="round"/>
+  <circle cx="664" cy="329" r="24" fill="#D94A52"/>
+  <circle cx="664" cy="329" r="10" fill="#FEE8EA"/>
+</svg>
