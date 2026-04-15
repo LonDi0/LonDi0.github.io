@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" role="img" aria-labelledby="title desc">
+  <title id="title">Southwest University emblem placeholder</title>
+  <desc id="desc">A stylized green circular badge with SWU letters.</desc>
+  <defs>
+    <linearGradient id="swuRing" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#0d7c5f"/>
+      <stop offset="100%" stop-color="#28a783"/>
+    </linearGradient>
+  </defs>
+  <circle cx="100" cy="100" r="94" fill="#ffffff"/>
+  <circle cx="100" cy="100" r="90" fill="none" stroke="url(#swuRing)" stroke-width="12"/>
+  <circle cx="100" cy="100" r="70" fill="#f3fbf8" stroke="#8ed3bc" stroke-width="2"/>
+  <path d="M66 120h68v8H66z" fill="#0d7c5f"/>
+  <path d="M70 111c11-7 19-17 25-31 6 14 14 24 25 31-11-1-19 2-25 8-6-6-14-9-25-8z" fill="#28a783"/>
+  <path d="M84 92c5 1 10 1 16 0-3 5-5 9-8 13-3-4-5-8-8-13z" fill="#c7efe0"/>
+  <text x="100" y="70" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-weight="700" font-size="30" fill="#0d7c5f">SWU</text>
+  <text x="100" y="145" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="14" fill="#0d7c5f">2005</text>
+</svg>

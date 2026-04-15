@@ -1,0 +1,103 @@
+﻿<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Academic Homepage Template</title>
+    <meta
+      name="description"
+      content="Academic personal homepage template with placeholder content."
+    />
+    <script>
+      (function () {
+        var theme = "light";
+        try {
+          var stored = localStorage.getItem("theme-preference");
+          if (stored === "light" || stored === "dark") {
+            theme = stored;
+          }
+        } catch (error) {}
+        document.documentElement.setAttribute("data-theme", theme);
+      })();
+    </script>
+    <link rel="icon" href="assets/images/profile-placeholder.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="assets/css/styles.css?v=20260415m" />
+  </head>
+  <body>
+    <div id="progress-bar" aria-hidden="true"></div>
+    <a class="skip-link" href="#main-content">Skip to main content</a>
+
+    <header class="site-header" id="top">
+      <div class="container header-inner">
+        <a class="brand" href="#hero" data-scroll-link>Academic Profile</a>
+        <button
+          class="menu-toggle"
+          id="menu-toggle"
+          aria-label="Toggle navigation menu"
+          aria-expanded="false"
+          aria-controls="site-nav"
+        >
+          Menu
+        </button>
+        <nav class="site-nav" id="site-nav" aria-label="Primary navigation">
+          <ul class="nav-links" id="nav-links"></ul>
+        </nav>
+        <div class="header-actions">
+          <button class="theme-toggle" id="theme-toggle" aria-label="Toggle color theme">
+            Dark
+          </button>
+          <button class="lang-toggle" id="lang-toggle" aria-label="Toggle language">
+            EN
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <main id="main-content">
+      <section id="hero" class="section section-hero reveal">
+        <div class="container" id="hero-root"></div>
+        <a
+          class="hero-scroll-hint"
+          href="#about"
+          data-scroll-link
+          aria-label="Scroll to About Me section"
+          title="Scroll to About Me"
+        ></a>
+      </section>
+
+      <section id="about" class="section reveal">
+        <div class="container section-shell" id="about-root"></div>
+      </section>
+
+      <section id="education" class="section reveal">
+        <div class="container section-shell" id="education-root"></div>
+      </section>
+
+      <section id="projects" class="section reveal">
+        <div class="container section-shell" id="projects-root"></div>
+      </section>
+
+      <section id="publications" class="section reveal">
+        <div class="container section-shell" id="publications-root"></div>
+      </section>
+
+      <section id="location" class="section reveal">
+        <div class="container section-shell" id="location-root"></div>
+      </section>
+
+      <section id="contact" class="section reveal">
+        <div class="container section-shell" id="contact-root"></div>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <div class="container" id="footer-root"></div>
+    </footer>
+
+    <script src="assets/js/content.js?v=20260415m" defer></script>
+    <script src="assets/js/main.js?v=20260415n" defer></script>
+  </body>
+</html>
+
+
+
