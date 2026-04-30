@@ -6,7 +6,52 @@
     return;
   }
 
-  var initialLang = content.i18n && content.i18n.defaultLang === 'en' ? 'en' : 'zh';
+  var THEME_KEY = 'theme-preference';
+  var LANG_KEY = 'language-preference';
+  var htmlEscapes = {
+    '&': '&amp;',
+    '<': '&lt;',
+    '>': '&gt;',
+    '"': '&quot;',
+    "'": '&#39;'
+  };
+
+  function getDefaultLang() {
+    return content.i18n && content.i18n.defaultLang === 'en' ? 'en' : 'zh';
+  }
+
+  function isSupportedLang(lang) {
+    var supportedLangs = content.i18n && Array.isArray(content.i18n.supportedLangs)
+      ? content.i18n.supportedLangs
+      : ['zh', 'en'];
+
+    return supportedLangs.indexOf(lang) !== -1;
+  }
+
+  function getInitialLang() {
+    var stored = null;
+    try {
+      stored = localStorage.getItem(LANG_KEY);
+    } catch (error) {}
+
+    if (isSupportedLang(stored)) {
+      return stored;
+    }
+
+    return getDefaultLang();
+  }
+
+  function persistLang(lang) {
+    if (!isSupportedLang(lang)) {
+      return;
+    }
+
+    try {
+      localStorage.setItem(LANG_KEY, lang);
+    } catch (error) {}
+  }
+
+  var initialLang = getInitialLang();
   var state = {
     lang: initialLang,
     locationLang: 'en',
@@ -34,7 +79,6 @@
 
   var sectionObserver = null;
   var revealObserver = null;
-  var THEME_KEY = 'theme-preference';
   var reducedMotionMedia = window.matchMedia ? window.matchMedia('(prefers-reduced-motion: reduce)') : null;
   var progressState = {
     target: 0,
@@ -238,11 +282,29 @@
     return String(value);
   }
 
+  function escapeHTML(value) {
+    if (value === null || value === undefined) {
+      return '';
+    }
+
+    return String(value).replace(/[&<>"']/g, function (char) {
+      return htmlEscapes[char];
+    });
+  }
+
+  function escapeAttr(value) {
+    return escapeHTML(value);
+  }
+
+  function safePick(value, lang) {
+    return escapeHTML(pick(value, lang));
+  }
+
   function makeSectionHeader(title, subtitle) {
     return (
       '<header class="section-header">' +
-      '<h2 class="section-title">' + pick(title) + '</h2>' +
-      '<p class="section-subtitle">' + pick(subtitle) + '</p>' +
+      '<h2 class="section-title">' + safePick(title) + '</h2>' +
+      '<p class="section-subtitle">' + safePick(subtitle) + '</p>' +
       '</header>'
     );
   }
@@ -361,11 +423,11 @@
         return (
           '<li>' +
           '<a class="nav-link" data-scroll-link data-section="' +
-          item.id +
+          escapeAttr(item.id) +
           '" href="#' +
-          item.id +
+          escapeAttr(item.id) +
           '">' +
-          pick(item.label) +
+          safePick(item.label) +
           '</a>' +
           '</li>'
         );
@@ -378,7 +440,7 @@
 
     var introHtml = profile.intro
       .map(function (paragraph) {
-        return '<p>' + pick(paragraph) + '</p>';
+        return '<p>' + safePick(paragraph) + '</p>';
       })
       .join('');
 
@@ -386,11 +448,11 @@
       .map(function (social) {
         return (
           '<li><a href="' +
-          social.url +
+          escapeAttr(social.url) +
           '" target="_blank" rel="noopener noreferrer" aria-label="' +
-          social.ariaLabel +
+          escapeAttr(social.ariaLabel || social.label) +
           '">' +
-          social.label +
+          escapeHTML(social.label) +
           '</a></li>'
         );
       })
@@ -400,9 +462,9 @@
       .map(function (cvItem) {
         return (
           '<a href="' +
-          cvItem.url +
+          escapeAttr(cvItem.url) +
           '" target="_blank" rel="noopener noreferrer">' +
-          pick(cvItem.label) +
+          safePick(cvItem.label) +
           '</a>'
         );
       })
@@ -412,24 +474,24 @@
       '<article class="hero-layout">' +
       '<div class="hero-avatar-wrap">' +
       '<img class="hero-avatar" src="' +
-      profile.avatar +
+      escapeAttr(profile.avatar) +
       '" alt="' +
-      pick(profile.avatarAlt) +
+      safePick(profile.avatarAlt) +
       '" />' +
       '</div>' +
       '<div>' +
       '<h1 class="hero-name">' +
-      pick(profile.name) +
+      safePick(profile.name) +
       '</h1>' +
       '<p class="hero-role">' +
-      pick(profile.role) +
+      safePick(profile.role) +
       '</p>' +
       '<p class="hero-contact">' +
-      pick(profile.affiliation) +
-      ' &middot; <a href="mailto:' +
-      profile.email +
+      safePick(profile.affiliation) +
+      ' &middot; <a href="' +
+      escapeAttr('mailto:' + profile.email) +
       '">' +
-      profile.email +
+      escapeHTML(profile.email) +
       '</a></p>' +
       '<div class="hero-summary">' +
       introHtml +
@@ -449,13 +511,13 @@
 
     var paragraphs = section.paragraphs
       .map(function (paragraph) {
-        return '<p>' + pick(paragraph) + '</p>';
+        return '<p>' + safePick(paragraph) + '</p>';
       })
       .join('');
 
     var highlights = section.highlights
       .map(function (item) {
-        return '<li>' + pick(item) + '</li>';
+        return '<li>' + safePick(item) + '</li>';
       })
       .join('');
 
@@ -476,19 +538,19 @@
       .map(function (item) {
         var details = item.details
           .map(function (detail) {
-            return '<li>' + pick(detail) + '</li>';
+            return '<li>' + safePick(detail) + '</li>';
           })
           .join('');
         var emblemHtml = '';
         if (item.emblem) {
           emblemHtml =
             '<img class="school-emblem" src="' +
-            item.emblem +
+            escapeAttr(item.emblem) +
             '" alt="' +
-            pick(item.emblemAlt || item.institution) +
+            safePick(item.emblemAlt || item.institution) +
             '" loading="eager" decoding="async" />';
         }
-        var institutionHtml = '<h3 class="card-title">' + pick(item.institution) + '</h3>';
+        var institutionHtml = '<h3 class="card-title">' + safePick(item.institution) + '</h3>';
         if (state.lang === 'zh' && item.wordmarkZh) {
           var institutionZh = pick(item.institution, 'zh');
           var tierStart = institutionZh.indexOf('·');
@@ -503,13 +565,13 @@
           institutionHtml =
             '<h3 class="card-title school-title-wordmark">' +
             '<img class="' +
-            wordmarkClass +
+            escapeAttr(wordmarkClass) +
             '" src="' +
-            item.wordmarkZh +
+            escapeAttr(item.wordmarkZh) +
             '" alt="' +
-            pick(item.wordmarkAlt || item.institution, 'zh') +
+            safePick(item.wordmarkAlt || item.institution, 'zh') +
             '" loading="eager" decoding="async" />' +
-            (tierText ? '<span class="school-tier">' + tierText + '</span>' : '') +
+            (tierText ? '<span class="school-tier">' + escapeHTML(tierText) + '</span>' : '') +
             '</h3>';
         }
 
@@ -521,11 +583,11 @@
           institutionHtml +
           '</div>' +
           '<span class="timeline-date">' +
-          item.period +
+          escapeHTML(item.period) +
           '</span>' +
           '</div>' +
           '<p class="card-meta">' +
-          pick(item.degree) +
+          safePick(item.degree) +
           '</p>' +
           '<ul class="section-list">' +
           details +
@@ -549,20 +611,20 @@
       .map(function (item) {
         var tags = item.tags
           .map(function (tag) {
-            return '<span class="pub-tag">' + tag + '</span>';
+            return '<span class="pub-tag">' + escapeHTML(tag) + '</span>';
           })
           .join(' ');
 
         return (
           '<article class="card">' +
           '<h3 class="card-title">' +
-          pick(item.title) +
+          safePick(item.title) +
           '</h3>' +
           '<p class="card-meta">' +
-          item.period +
+          escapeHTML(item.period) +
           '</p>' +
           '<p>' +
-          pick(item.description) +
+          safePick(item.description) +
           '</p>' +
           '<div class="pub-head">' +
           tags +
@@ -597,9 +659,9 @@
           '<button class="filter-btn' +
           activeClass +
           '" type="button" data-filter="' +
-          filter.key +
+          escapeAttr(filter.key) +
           '">' +
-          pick(filter.label) +
+          safePick(filter.label) +
           '</button>'
         );
       })
@@ -609,7 +671,7 @@
       .map(function (item) {
         var tags = item.tags
           .map(function (tag) {
-            return '<span class="pub-tag">' + tag + '</span>';
+            return '<span class="pub-tag">' + escapeHTML(tag) + '</span>';
           })
           .join(' ');
 
@@ -617,9 +679,9 @@
           .map(function (link) {
             return (
               '<a href="' +
-              link.url +
+              escapeAttr(link.url) +
               '" target="_blank" rel="noopener noreferrer">' +
-              link.label +
+              escapeHTML(link.label) +
               '</a>'
             );
           })
@@ -627,27 +689,27 @@
 
         return (
           '<article class="publication-card" data-type="' +
-          item.type +
+          escapeAttr(item.type) +
           '" data-search="' +
-          buildPublicationSearchText(item) +
+          escapeAttr(buildPublicationSearchText(item)) +
           '">' +
           '<div class="pub-head">' +
           '<span class="pub-year">' +
-          item.year +
+          escapeHTML(item.year) +
           '</span>' +
           '<span class="pub-type">' +
-          item.type +
+          escapeHTML(item.type) +
           '</span>' +
           '<span class="pub-tag">' +
-          item.venue +
+          escapeHTML(item.venue) +
           '</span>' +
           tags +
           '</div>' +
           '<h3 class="card-title">' +
-          pick(item.title) +
+          safePick(item.title) +
           '</h3>' +
           '<p class="card-meta">' +
-          pick(item.authors) +
+          safePick(item.authors) +
           '</p>' +
           '<div class="pub-links">' +
           links +
@@ -663,14 +725,14 @@
       '<div class="publication-toolbar">' +
       '<div class="publication-stats">' +
       '<span class="stat-pill"><strong id="stat-refereed">0</strong> ' +
-      refereedLabel +
+      escapeHTML(refereedLabel) +
       '</span>' +
       '<span class="stat-pill"><strong id="stat-manuscript">0</strong> ' +
-      manuscriptLabel +
+      escapeHTML(manuscriptLabel) +
       '</span>' +
       '</div>' +
       '<input id="pub-search" class="publication-search" type="text" placeholder="' +
-      pick(section.searchPlaceholder) +
+      safePick(section.searchPlaceholder) +
       '" />' +
       '<div class="filter-row">' +
       filters +
@@ -680,10 +742,10 @@
       items +
       '</div>' +
       '<div id="pub-empty" class="pub-empty">' +
-      pick(section.emptyText) +
+      safePick(section.emptyText) +
       '</div>' +
       '<p><a class="ghost-button" href="#">' +
-      pick(section.fullListLabel) +
+      safePick(section.fullListLabel) +
       '</a></p>' +
       '</div>';
 
@@ -894,14 +956,14 @@
     if (fallbackUrl) {
       container.innerHTML =
         '<iframe class="map-embed-frame" src="' +
-        fallbackUrl +
+        escapeAttr(fallbackUrl) +
         '" title="' +
-        titleText +
+        escapeAttr(titleText) +
         '" loading="lazy" referrerpolicy="no-referrer-when-downgrade" allowfullscreen></iframe>';
       return;
     }
 
-    container.innerHTML = '<p class="map-fallback-text">' + (state.lang === 'zh' ? '\u5730\u56fe\u52a0\u8f7d\u5931\u8d25\u3002' : 'Map failed to load.') + '</p>';
+    container.innerHTML = '<p class="map-fallback-text">' + escapeHTML(state.lang === 'zh' ? '\u5730\u56fe\u52a0\u8f7d\u5931\u8d25\u3002' : 'Map failed to load.') + '</p>';
   }
 
   function initAmapInteractiveMap(section) {
@@ -913,7 +975,7 @@
     var lng = parseFloat(section.amapTile.lng);
     var lat = parseFloat(section.amapTile.lat);
     var zoom = parseInt(section.amapTile.zoom, 10);
-    var fallbackUrl = pick(section.mapEmbedUrl);
+    var fallbackUrl = resolveLocationMapEmbedUrl(section);
     var titleText = pick(section.mapAlt);
 
     if (!isFinite(lng) || !isFinite(lat) || !isFinite(zoom)) {
@@ -921,7 +983,7 @@
       return;
     }
 
-    mapRoot.innerHTML = '<div class="map-loading">' + (state.lang === 'zh' ? '\u5730\u56fe\u52a0\u8f7d\u4e2d...' : 'Loading map...') + '</div>';
+    mapRoot.innerHTML = '<div class="map-loading">' + escapeHTML(state.lang === 'zh' ? '\u5730\u56fe\u52a0\u8f7d\u4e2d...' : 'Loading map...') + '</div>';
 
     ensureLeafletLoaded(function (loaded) {
       if (!document.getElementById('amap-interactive-map')) {
@@ -1047,14 +1109,14 @@
       var zhAddress = document.getElementById('address-zh');
       if (zhAddress) {
         zhAddress.innerHTML = section.addressZh.map(function (line) {
-          return '<p>' + line + '</p>';
+          return '<p>' + escapeHTML(line) + '</p>';
         }).join('');
       }
 
       var enAddress = document.getElementById('address-en');
       if (enAddress) {
         enAddress.innerHTML = section.addressEn.map(function (line) {
-          return '<p>' + line + '</p>';
+          return '<p>' + escapeHTML(line) + '</p>';
         }).join('');
       }
 
@@ -1073,9 +1135,9 @@
         }
         mapActions.innerHTML =
           '<a class="map-open-link" href="' +
-          amapOpenUrl +
+          escapeAttr(amapOpenUrl) +
           '" target="_blank" rel="noopener noreferrer">' +
-          pick(section.amapOpenLabel) +
+          safePick(section.amapOpenLabel) +
           '</a>';
       } else if (mapActions && mapActions.parentNode) {
         mapActions.parentNode.removeChild(mapActions);
@@ -1090,31 +1152,31 @@
     if (mapMode === 'amapTile' && section.amapTile) {
       mapHtml =
         '<div class="map-embed amap-interactive-map" id="amap-interactive-map" data-lng="' +
-        section.amapTile.lng +
+        escapeAttr(section.amapTile.lng) +
         '" data-lat="' +
-        section.amapTile.lat +
+        escapeAttr(section.amapTile.lat) +
         '" data-zoom="' +
-        section.amapTile.zoom +
+        escapeAttr(section.amapTile.zoom) +
         '" aria-label="' +
-        pick(section.mapAlt) +
+        safePick(section.mapAlt) +
         '"></div>';
     } else if (mapEmbedUrl) {
       mapHtml =
         '<div class="map-embed-crop" aria-label="' +
-        pick(section.mapAlt) +
+        safePick(section.mapAlt) +
         '">' +
         '<iframe class="map-embed map-embed--inner" src="' +
-        mapEmbedUrl +
+        escapeAttr(mapEmbedUrl) +
         '" title="' +
-        pick(section.mapAlt) +
+        safePick(section.mapAlt) +
         '" loading="lazy" referrerpolicy="no-referrer-when-downgrade" allowfullscreen></iframe>' +
         '</div>';
     } else {
       mapHtml =
         '<img class="map-placeholder" src="' +
-        section.mapImage +
+        escapeAttr(section.mapImage) +
         '" alt="' +
-        pick(section.mapAlt) +
+        safePick(section.mapAlt) +
         '" />';
     }
 
@@ -1122,9 +1184,9 @@
       amapOpenHtml =
         '<p class="map-actions">' +
         '<a class="map-open-link" href="' +
-        amapOpenUrl +
+        escapeAttr(amapOpenUrl) +
         '" target="_blank" rel="noopener noreferrer">' +
-        pick(section.amapOpenLabel) +
+        safePick(section.amapOpenLabel) +
         '</a>' +
         '</p>';
     }
@@ -1133,18 +1195,18 @@
       makeSectionHeader(section.title, section.subtitle) +
       '<article class="card location-card">' +
       '<button id="address-toggle" class="address-toggle" type="button" aria-label="' +
-      pick(section.toggleLabel) +
+      safePick(section.toggleLabel) +
       '">' +
-      getAddressToggleText() +
+      escapeHTML(getAddressToggleText()) +
       '</button>' +
       '<div id="address-zh">' +
       section.addressZh.map(function (line) {
-        return '<p>' + line + '</p>';
+        return '<p>' + escapeHTML(line) + '</p>';
       }).join('') +
       '</div>' +
       '<div id="address-en">' +
       section.addressEn.map(function (line) {
-        return '<p>' + line + '</p>';
+        return '<p>' + escapeHTML(line) + '</p>';
       }).join('') +
       '</div>' +
       mapHtml +
@@ -1183,12 +1245,12 @@
         return (
           '<article class="contact-item">' +
           '<p class="contact-label">' +
-          pick(method.label) +
+          safePick(method.label) +
           '</p>' +
           '<p class="contact-value"><a href="' +
-          method.href +
+          escapeAttr(method.href) +
           '" target="_blank" rel="noopener noreferrer">' +
-          method.value +
+          safePick(method.value) +
           '</a></p>' +
           '</article>'
         );
@@ -1203,7 +1265,7 @@
   }
 
   function renderFooter() {
-    refs.footer.innerHTML = '<p>' + pick(content.footer.text) + '</p>';
+    refs.footer.innerHTML = '<p>' + safePick(content.footer.text) + '</p>';
   }
 
   function renderAll() {
@@ -1600,6 +1662,7 @@
       refs.langToggle.addEventListener('click', function (event) {
         event.preventDefault();
         state.lang = state.lang === 'zh' ? 'en' : 'zh';
+        persistLang(state.lang);
         rerenderWithScrollLock(function () {
           renderAll();
           initSectionObserver();
