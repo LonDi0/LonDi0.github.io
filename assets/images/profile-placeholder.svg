@@ -1,0 +1,20 @@
+﻿<svg width="900" height="900" viewBox="0 0 900 900" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
+  <title id="title">Profile Placeholder</title>
+  <desc id="desc">Abstract placeholder portrait generated for this project</desc>
+  <defs>
+    <linearGradient id="bg" x1="120" y1="90" x2="790" y2="760" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#D7E5F7"/>
+      <stop offset="1" stop-color="#9CB7D8"/>
+    </linearGradient>
+    <linearGradient id="shape" x1="450" y1="230" x2="450" y2="830" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#F7FAFF"/>
+      <stop offset="1" stop-color="#D2E0F1"/>
+    </linearGradient>
+  </defs>
+  <rect width="900" height="900" rx="52" fill="url(#bg)"/>
+  <circle cx="450" cy="334" r="160" fill="url(#shape)"/>
+  <path d="M162 786C186 596 308 492 450 492C592 492 714 596 738 786" fill="url(#shape)"/>
+  <circle cx="698" cy="182" r="54" fill="#84A6CF" fill-opacity="0.45"/>
+  <circle cx="195" cy="699" r="42" fill="#7E9FC9" fill-opacity="0.38"/>
+  <path d="M94 196C112 182 140 184 155 202C169 220 167 247 151 262C134 278 108 278 92 262C75 245 76 211 94 196Z" fill="#8DADD4" fill-opacity="0.35"/>
+</svg>

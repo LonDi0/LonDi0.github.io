@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" role="img" aria-labelledby="title desc">
+  <title id="title">Jinan University emblem placeholder</title>
+  <desc id="desc">A stylized maroon circular badge with JNU letters.</desc>
+  <defs>
+    <linearGradient id="jnuRing" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#8b1830"/>
+      <stop offset="100%" stop-color="#b13049"/>
+    </linearGradient>
+  </defs>
+  <circle cx="100" cy="100" r="94" fill="#ffffff"/>
+  <circle cx="100" cy="100" r="90" fill="none" stroke="url(#jnuRing)" stroke-width="12"/>
+  <circle cx="100" cy="100" r="70" fill="#fff7f9" stroke="#d98a99" stroke-width="2"/>
+  <path d="M66 122h68v8H66z" fill="#8b1830"/>
+  <path d="M72 118l10-32h36l10 32h-10l-4-13H86l-4 13z" fill="#b13049"/>
+  <path d="M90 98h20l-10-9z" fill="#f4cfd7"/>
+  <text x="100" y="70" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-weight="700" font-size="30" fill="#8b1830">JNU</text>
+  <text x="100" y="145" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="14" fill="#8b1830">1906</text>
+</svg>
