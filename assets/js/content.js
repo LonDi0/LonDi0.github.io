@@ -95,7 +95,7 @@
         {
           institution: {
             zh: '暨南大学 · 211',
-            en: 'Jinan University'
+            en: 'Jinan University · QS 2026 #=540'
           },
           emblem: 'assets/images/jnu-emblem-official-crop.png',
           emblemAlt: {
@@ -127,7 +127,7 @@
         {
           institution: {
             zh: '西南大学 · 211',
-            en: 'Southwest University'
+            en: 'Southwest University · QS 2026 #1001-1200'
           },
           emblem: 'assets/images/swu-emblem-official-crop.png',
           emblemAlt: {
