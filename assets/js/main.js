@@ -101,6 +101,9 @@
   };
   var mapState = {
     map: null,
+    amapApiLoading: false,
+    amapApiLoaded: false,
+    amapApiQueue: [],
     leafletLoading: false,
     leafletLoaded: false,
     queue: []
@@ -828,13 +831,6 @@
     return state.locationLang === 'en' ? 'Show Chinese address' : 'Show English address';
   }
 
-  function shouldUseGoogleMapOnMobileZh() {
-    if (!window.matchMedia) {
-      return false;
-    }
-    return state.locationLang === 'zh' && window.matchMedia('(max-width: 768px)').matches;
-  }
-
   function resolveLocationMapEmbedUrl(section) {
     if (!section) {
       return '';
@@ -842,9 +838,6 @@
 
     var mapValue = section.mapEmbedUrl;
     if (mapValue && typeof mapValue === 'object') {
-      if (shouldUseGoogleMapOnMobileZh() && mapValue.en) {
-        return String(mapValue.en);
-      }
       return String(
         mapValue[state.locationLang] ||
         mapValue[state.lang] ||
@@ -855,6 +848,182 @@
     }
 
     return pick(mapValue);
+  }
+
+  function resolveLocationMapMode(section) {
+    var mode = section ? section.mapMode : '';
+    if (mode && typeof mode === 'object') {
+      return String(
+        mode[state.locationLang] ||
+        mode[state.lang] ||
+        mode.zh ||
+        mode.en ||
+        ''
+      );
+    }
+
+    return pick(mode);
+  }
+
+  function pickLocationValue(value) {
+    if (value && typeof value === 'object') {
+      return String(
+        value[state.locationLang] ||
+        value[state.lang] ||
+        value.zh ||
+        value.en ||
+        ''
+      );
+    }
+
+    return pick(value);
+  }
+
+  function resolveLocationMapOpenUrl(section) {
+    if (!section) {
+      return '';
+    }
+
+    return pickLocationValue(section.mapOpenUrl) || pickLocationValue(section.amapOpenUrl);
+  }
+
+  function resolveLocationMapOpenLabel(section) {
+    if (!section) {
+      return '';
+    }
+
+    return pickLocationValue(section.mapOpenLabel) || pickLocationValue(section.amapOpenLabel);
+  }
+
+  function getAmapConfig(section) {
+    var source = section && (section.amap || section.amapTile);
+    if (!source) {
+      return null;
+    }
+
+    var lng = parseFloat(source.lng);
+    var lat = parseFloat(source.lat);
+    var zoom = parseInt(source.zoom, 10);
+    if (!isFinite(lng) || !isFinite(lat) || !isFinite(zoom)) {
+      return null;
+    }
+
+    return {
+      key: source.key ? String(source.key).trim() : '',
+      securityJsCode: source.securityJsCode ? String(source.securityJsCode).trim() : '',
+      lng: lng,
+      lat: lat,
+      zoom: zoom,
+      maxZoom: source.maxZoom ? parseInt(source.maxZoom, 10) : 18,
+      markerTitle: pick(source.markerTitle || section.mapAlt)
+    };
+  }
+
+  function flushAmapApiQueue(success, AMap) {
+    var pending = mapState.amapApiQueue.slice();
+    mapState.amapApiQueue.length = 0;
+    pending.forEach(function (callback) {
+      callback(success, AMap);
+    });
+  }
+
+  function ensureAmapApiLoaded(config, callback) {
+    if (!config || !config.key) {
+      callback(false);
+      return;
+    }
+
+    if (window.AMap && window.AMap.Map) {
+      mapState.amapApiLoaded = true;
+      callback(true, window.AMap);
+      return;
+    }
+
+    mapState.amapApiQueue.push(callback);
+    if (mapState.amapApiLoading) {
+      return;
+    }
+
+    mapState.amapApiLoading = true;
+
+    if (config.securityJsCode) {
+      window._AMapSecurityConfig = {
+        securityJsCode: config.securityJsCode
+      };
+    }
+
+    function loadMapApi() {
+      if (!window.AMapLoader || typeof window.AMapLoader.load !== 'function') {
+        mapState.amapApiLoading = false;
+        mapState.amapApiLoaded = false;
+        flushAmapApiQueue(false);
+        return;
+      }
+
+      window.AMapLoader.load({
+        key: config.key,
+        version: '2.0'
+      }).then(function (AMap) {
+        mapState.amapApiLoading = false;
+        mapState.amapApiLoaded = !!(AMap && AMap.Map);
+        flushAmapApiQueue(mapState.amapApiLoaded, AMap);
+      }).catch(function () {
+        mapState.amapApiLoading = false;
+        mapState.amapApiLoaded = false;
+        flushAmapApiQueue(false);
+      });
+    }
+
+    if (window.AMapLoader && typeof window.AMapLoader.load === 'function') {
+      loadMapApi();
+      return;
+    }
+
+    var existingScript = document.getElementById('amap-loader-script');
+    if (existingScript) {
+      var existingState = existingScript.getAttribute('data-state');
+      if (existingState === 'loading') {
+        existingScript.addEventListener('load', function () {
+          existingScript.setAttribute('data-state', 'loaded');
+          loadMapApi();
+        }, { once: true });
+        existingScript.addEventListener('error', function () {
+          mapState.amapApiLoading = false;
+          mapState.amapApiLoaded = false;
+          flushAmapApiQueue(false);
+        }, { once: true });
+        return;
+      }
+
+      if (existingState === 'loaded') {
+        loadMapApi();
+        return;
+      }
+
+      if (existingScript.parentNode) {
+        existingScript.parentNode.removeChild(existingScript);
+      }
+    }
+
+    var script = document.createElement('script');
+    script.id = 'amap-loader-script';
+    script.src = 'https://webapi.amap.com/loader.js';
+    script.async = true;
+    script.setAttribute('data-state', 'loading');
+
+    script.onload = function () {
+      script.setAttribute('data-state', 'loaded');
+      loadMapApi();
+    };
+
+    script.onerror = function () {
+      script.setAttribute('data-state', 'error');
+      mapState.amapApiLoading = false;
+      mapState.amapApiLoaded = false;
+      flushAmapApiQueue(false);
+    };
+
+    document.head.appendChild(script);
   }
 
 
@@ -943,7 +1112,11 @@
     }
 
     if (mapState.map) {
-      mapState.map.remove();
+      if (typeof mapState.map.destroy === 'function') {
+        mapState.map.destroy();
+      } else if (typeof mapState.map.remove === 'function') {
+        mapState.map.remove();
+      }
       mapState.map = null;
     }
   }
@@ -966,25 +1139,7 @@
     container.innerHTML = '<p class="map-fallback-text">' + escapeHTML(state.lang === 'zh' ? '\u5730\u56fe\u52a0\u8f7d\u5931\u8d25\u3002' : 'Map failed to load.') + '</p>';
   }
 
-  function initAmapInteractiveMap(section) {
-    var mapRoot = document.getElementById('amap-interactive-map');
-    if (!mapRoot || !section.amapTile) {
-      return;
-    }
-
-    var lng = parseFloat(section.amapTile.lng);
-    var lat = parseFloat(section.amapTile.lat);
-    var zoom = parseInt(section.amapTile.zoom, 10);
-    var fallbackUrl = resolveLocationMapEmbedUrl(section);
-    var titleText = pick(section.mapAlt);
-
-    if (!isFinite(lng) || !isFinite(lat) || !isFinite(zoom)) {
-      renderMapFallback(mapRoot, fallbackUrl, titleText);
-      return;
-    }
-
-    mapRoot.innerHTML = '<div class="map-loading">' + escapeHTML(state.lang === 'zh' ? '\u5730\u56fe\u52a0\u8f7d\u4e2d...' : 'Loading map...') + '</div>';
-
+  function initAmapTileMap(mapRoot, config, fallbackUrl, titleText) {
     ensureLeafletLoaded(function (loaded) {
       if (!document.getElementById('amap-interactive-map')) {
         return;
@@ -1004,35 +1159,107 @@
         scrollWheelZoom: true,
         dragging: true,
         doubleClickZoom: true,
-        touchZoom: true
+        touchZoom: true,
+        maxZoom: config.maxZoom
       });
-      mapState.map.setView([lat, lng], zoom);
+      mapState.map.setView([config.lat, config.lng], config.zoom);
 
       window.L.tileLayer(
         'https://webrd0{s}.is.autonavi.com/appmaptile?lang=zh_cn&size=1&style=8&x={x}&y={y}&z={z}',
         {
           subdomains: ['1', '2', '3', '4'],
           minZoom: 3,
-          maxZoom: 19,
-          detectRetina: true,
+          maxZoom: config.maxZoom,
+          maxNativeZoom: config.maxZoom,
+          detectRetina: false,
+          tileSize: 256,
+          updateWhenZooming: false,
+          keepBuffer: 3,
           attribution: '&copy; AutoNavi'
         }
       ).addTo(mapState.map);
 
-      window.L.circleMarker([lat, lng], {
-        radius: 7,
-        color: '#ffffff',
-        weight: 2,
-        fillColor: '#4c96e9',
-        fillOpacity: 0.96
+      window.L.marker([config.lat, config.lng], {
+        title: config.markerTitle,
+        alt: config.markerTitle
       }).addTo(mapState.map);
 
       window.setTimeout(function () {
-        if (mapState.map) {
+        if (mapState.map && typeof mapState.map.invalidateSize === 'function') {
           mapState.map.invalidateSize();
         }
       }, 0);
     });
+  }
+
+  function initAmapInteractiveMap(section) {
+    var mapRoot = document.getElementById('amap-interactive-map');
+    var amapConfig = getAmapConfig(section);
+    if (!mapRoot || !amapConfig) {
+      return;
+    }
+
+    var fallbackUrl = resolveLocationMapEmbedUrl(section);
+    var titleText = pick(section.mapAlt);
+
+    mapRoot.innerHTML = '<div class="map-loading">' + escapeHTML(state.lang === 'zh' ? '\u5730\u56fe\u52a0\u8f7d\u4e2d...' : 'Loading map...') + '</div>';
+
+    ensureAmapApiLoaded(amapConfig, function (loaded, AMap) {
+      if (!document.getElementById('amap-interactive-map')) {
+        return;
+      }
+
+      if (!loaded || !AMap || !AMap.Map) {
+        initAmapTileMap(mapRoot, amapConfig, fallbackUrl, titleText);
+        return;
+      }
+
+      destroyAmapInteractiveMap();
+      mapRoot.innerHTML = '';
+
+      try {
+        mapState.map = new AMap.Map(mapRoot, {
+          viewMode: '2D',
+          zoom: amapConfig.zoom,
+          center: [amapConfig.lng, amapConfig.lat],
+          resizeEnable: true
+        });
+
+        if (state.theme === 'dark' && typeof mapState.map.setMapStyle === 'function') {
+          mapState.map.setMapStyle('amap://styles/dark');
+        }
+
+        if (AMap.Marker) {
+          var marker = new AMap.Marker({
+            position: [amapConfig.lng, amapConfig.lat],
+            title: amapConfig.markerTitle,
+            content: '<span class="amap-location-pin" aria-hidden="true"></span>',
+            offset: new AMap.Pixel(-12, -34)
+          });
+          mapState.map.add(marker);
+        }
+      } catch (error) {
+        destroyAmapInteractiveMap();
+        initAmapTileMap(mapRoot, amapConfig, fallbackUrl, titleText);
+        return;
+      }
+
+      window.setTimeout(function () {
+        if (mapState.map && typeof mapState.map.resize === 'function') {
+          mapState.map.resize();
+        }
+      }, 0);
+    });
+  }
+
+  function syncAmapTheme() {
+    if (
+      mapState.map &&
+      typeof mapState.map.setMapStyle === 'function' &&
+      document.getElementById('amap-interactive-map')
+    ) {
+      mapState.map.setMapStyle(state.theme === 'dark' ? 'amap://styles/dark' : 'amap://styles/normal');
+    }
   }
 
   function bindAddressToggleHandler() {
@@ -1074,13 +1301,15 @@
     var section = content.sections.location;
     var mapEmbedUrl = resolveLocationMapEmbedUrl(section);
     var mapHtml = '';
-    var amapOpenUrl = pick(section.amapOpenUrl);
-    var amapOpenHtml = '';
-    var mapMode = pick(section.mapMode);
+    var mapOpenUrl = resolveLocationMapOpenUrl(section);
+    var mapOpenLabel = resolveLocationMapOpenLabel(section);
+    var mapOpenHtml = '';
+    var mapMode = resolveLocationMapMode(section);
     var currentCard = refs.location ? refs.location.querySelector('.location-card') : null;
     var currentMapFrame = currentCard ? currentCard.querySelector('.map-embed--inner') : null;
     var canPatchInPlace =
       !!currentCard &&
+      mapMode !== 'amap' &&
       mapMode !== 'amapTile' &&
       !!mapEmbedUrl &&
       !!currentMapFrame &&
@@ -1127,7 +1356,7 @@
       currentMapFrame.setAttribute('title', pick(section.mapAlt));
 
       var mapActions = currentCard.querySelector('.map-actions');
-      if (amapOpenUrl) {
+      if (mapOpenUrl) {
         if (!mapActions) {
           mapActions = document.createElement('p');
           mapActions.className = 'map-actions';
@@ -1135,9 +1364,9 @@
         }
         mapActions.innerHTML =
           '<a class="map-open-link" href="' +
-          escapeAttr(amapOpenUrl) +
+          escapeAttr(mapOpenUrl) +
           '" target="_blank" rel="noopener noreferrer">' +
-          safePick(section.amapOpenLabel) +
+          escapeHTML(mapOpenLabel) +
           '</a>';
       } else if (mapActions && mapActions.parentNode) {
         mapActions.parentNode.removeChild(mapActions);
@@ -1149,14 +1378,15 @@
       return;
     }
 
-    if (mapMode === 'amapTile' && section.amapTile) {
+    if ((mapMode === 'amap' || mapMode === 'amapTile') && getAmapConfig(section)) {
+      var amapConfig = getAmapConfig(section);
       mapHtml =
         '<div class="map-embed amap-interactive-map" id="amap-interactive-map" data-lng="' +
-        escapeAttr(section.amapTile.lng) +
+        escapeAttr(amapConfig.lng) +
         '" data-lat="' +
-        escapeAttr(section.amapTile.lat) +
+        escapeAttr(amapConfig.lat) +
         '" data-zoom="' +
-        escapeAttr(section.amapTile.zoom) +
+        escapeAttr(amapConfig.zoom) +
         '" aria-label="' +
         safePick(section.mapAlt) +
         '"></div>';
@@ -1180,13 +1410,13 @@
         '" />';
     }
 
-    if (amapOpenUrl) {
-      amapOpenHtml =
+    if (mapOpenUrl) {
+      mapOpenHtml =
         '<p class="map-actions">' +
         '<a class="map-open-link" href="' +
-        escapeAttr(amapOpenUrl) +
+        escapeAttr(mapOpenUrl) +
         '" target="_blank" rel="noopener noreferrer">' +
-        safePick(section.amapOpenLabel) +
+        escapeHTML(mapOpenLabel) +
         '</a>' +
         '</p>';
     }
@@ -1210,7 +1440,7 @@
       }).join('') +
       '</div>' +
       mapHtml +
-      amapOpenHtml +
+      mapOpenHtml +
       '</article>';
 
     initAmapInteractiveMap(section);
@@ -1684,6 +1914,7 @@
           localStorage.setItem(THEME_KEY, nextTheme);
         } catch (error) {}
         updateThemeToggleLabel();
+        syncAmapTheme();
       });
     }
 
@@ -1736,8 +1967,10 @@
     window.addEventListener('resize', function () {
       updateProgressBar(true);
       resizeClickParticleCanvas();
-      if (mapState.map) {
+      if (mapState.map && typeof mapState.map.invalidateSize === 'function') {
         mapState.map.invalidateSize();
+      } else if (mapState.map && typeof mapState.map.resize === 'function') {
+        mapState.map.resize();
       }
     });
     bindReducedMotionPreference();

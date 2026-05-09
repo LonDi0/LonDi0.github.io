@@ -698,14 +698,55 @@ input {
 .amap-interactive-map {
   position: relative;
   overflow: hidden;
+  min-height: 425px;
 }
 
-.amap-interactive-map .leaflet-container {
+.amap-interactive-map .leaflet-container,
+.amap-interactive-map .amap-container {
   width: 100%;
-  height: 100%;
+  height: 100% !important;
+  min-height: inherit;
   border-radius: inherit;
   background: #e9eff8;
   font-family: "Noto Sans SC", "Segoe UI", sans-serif;
+}
+
+.amap-interactive-map .amap-maps {
+  border-radius: inherit;
+}
+
+.amap-location-pin {
+  position: relative;
+  display: block;
+  width: 24px;
+  height: 34px;
+  filter: drop-shadow(0 3px 5px rgba(20, 32, 52, 0.28));
+}
+
+.amap-location-pin::before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 0;
+  width: 24px;
+  height: 24px;
+  border: 2px solid #ffffff;
+  border-radius: 50% 50% 50% 0;
+  background: #e23b32;
+  transform: translateX(-50%) rotate(-45deg);
+  box-sizing: border-box;
+}
+
+.amap-location-pin::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 7px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #ffffff;
+  transform: translateX(-50%);
 }
 
 .map-embed-frame {
@@ -1073,7 +1114,8 @@ html[data-theme="dark"] .map-embed-crop {
   box-shadow: 0 8px 18px rgba(4, 8, 16, 0.35);
 }
 
-html[data-theme="dark"] .amap-interactive-map .leaflet-container {
+html[data-theme="dark"] .amap-interactive-map .leaflet-container,
+html[data-theme="dark"] .amap-interactive-map .amap-container {
   background: #1a2a42;
 }
 
@@ -1103,9 +1145,6 @@ html[data-theme="dark"] .pub-tag {
 html[data-theme="dark"] .site-footer {
   border-top: 1px solid rgba(70, 90, 125, 0.55);
 }
-
-
-
 
 
 

@@ -264,13 +264,36 @@
         'Room 904, Intellectual Property Building',
         'Jinan University, Panyu Campus, 855 Xingye Avenue East, Panyu District, Guangzhou, China'
       ],
-      mapMode: 'embed',
-      amapTile: { lng: 113.412600, lat: 23.016720, zoom: 16 },
-      mapEmbedUrl: {
-        zh: 'https://api.map.baidu.com/marker?location=23.016720,113.412600&title=%E6%9A%A8%E5%8D%97%E5%A4%A7%E5%AD%A6%E7%95%AA%E7%A6%BA%E6%A0%A1%E5%8C%BA%E7%9F%A5%E8%AF%86%E4%BA%A7%E6%9D%83%E6%A5%BC&content=Room%2B904&output=html&coord_type=gcj02&zoom=16&src=webapp.personalhomepage.map',
-        en: 'https://www.google.com/maps?hl=en&q=23.016720,113.412600&z=17&output=embed'
+      mapMode: {
+        zh: 'amap',
+        en: 'embed'
       },
-      amapOpenUrl: '',
+      amap: {
+        key: '6a6ac6b39f33cb76ee52d1ccef73da05',
+        securityJsCode: 'fa4c1a0ee4c92db8519fa781ece30b99',
+        lng: 113.412396,
+        lat: 23.016767,
+        zoom: 17,
+        maxZoom: 18,
+        markerTitle: {
+          zh: '暨南大学番禺校区知识产权楼 904',
+          en: 'Room 904, Intellectual Property Building'
+        }
+      },
+      amapTile: { lng: 113.412396, lat: 23.016767, zoom: 16 },
+      mapEmbedUrl: {
+        zh: '',
+        en: 'https://www.google.com/maps?hl=en&q=23.016767,113.412396&z=17&output=embed'
+      },
+      mapOpenUrl: {
+        zh: 'https://uri.amap.com/marker?position=113.412396,23.016767&name=%E6%9A%A8%E5%8D%97%E5%A4%A7%E5%AD%A6%E7%95%AA%E7%A6%BA%E6%A0%A1%E5%8C%BA%E7%9F%A5%E8%AF%86%E4%BA%A7%E6%9D%83%E6%A5%BC%20904&src=personalhomepage&coordinate=gaode&callnative=0',
+        en: 'https://www.google.com/maps/search/?api=1&query=23.016767,113.412396'
+      },
+      mapOpenLabel: {
+        zh: '在高德地图打开',
+        en: 'Open in Google Maps'
+      },
+      amapOpenUrl: 'https://uri.amap.com/marker?position=113.412396,23.016767&name=%E6%9A%A8%E5%8D%97%E5%A4%A7%E5%AD%A6%E7%95%AA%E7%A6%BA%E6%A0%A1%E5%8C%BA%E7%9F%A5%E8%AF%86%E4%BA%A7%E6%9D%83%E6%A5%BC%20904&src=personalhomepage&coordinate=gaode&callnative=0',
       amapOpenLabel: {
         zh: '在高德地图打开',
         en: 'Open in AMap'
