@@ -20,6 +20,28 @@
     return content.i18n && content.i18n.defaultLang === 'en' ? 'en' : 'zh';
   }
 
+  function normalizeBrowserLang(lang) {
+    return typeof lang === 'string' && /^zh\b/i.test(lang) ? 'zh' : 'en';
+  }
+
+  function getBrowserLang() {
+    var browserLangs = [];
+
+    if (navigator.languages && navigator.languages.length) {
+      browserLangs = navigator.languages;
+    } else if (navigator.language) {
+      browserLangs = [navigator.language];
+    } else if (navigator.userLanguage) {
+      browserLangs = [navigator.userLanguage];
+    }
+
+    if (browserLangs.length === 0) {
+      return getDefaultLang();
+    }
+
+    return normalizeBrowserLang(browserLangs[0]);
+  }
+
   function isSupportedLang(lang) {
     var supportedLangs = content.i18n && Array.isArray(content.i18n.supportedLangs)
       ? content.i18n.supportedLangs
@@ -38,7 +60,7 @@
       return stored;
     }
 
-    return getDefaultLang();
+    return getBrowserLang();
   }
 
   function persistLang(lang) {
@@ -54,7 +76,7 @@
   var initialLang = getInitialLang();
   var state = {
     lang: initialLang,
-    locationLang: 'en',
+    locationLang: initialLang,
     publicationFilter: 'all',
     publicationQuery: '',
     theme: 'light',
