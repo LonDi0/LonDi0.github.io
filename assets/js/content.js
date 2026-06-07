@@ -55,10 +55,10 @@
       en: 'Profile placeholder image'
     },
     socials: [
-      { label: 'Google Scholar', url: 'https://scholar.google.com/', ariaLabel: 'Google Scholar' },
-      { label: 'GitHub', url: 'https://github.com/', ariaLabel: 'GitHub' },
-      { label: 'Bilibili', url: 'https://space.bilibili.com/57490945', ariaLabel: 'Bilibili' },
-      { label: 'Zhihu', url: 'https://www.zhihu.com/people/ldio-79', ariaLabel: 'Zhihu' }
+      { label: 'Google Scholar', url: 'https://scholar.google.com/', ariaLabel: 'Google Scholar', icon: 'assets/images/icons/google-scholar.svg' },
+      { label: 'GitHub', url: 'https://github.com/', ariaLabel: 'GitHub', icon: 'assets/images/icons/github.svg' },
+      { label: 'Bilibili', url: 'https://space.bilibili.com/57490945', ariaLabel: 'Bilibili', icon: 'assets/images/icons/bilibili.svg' },
+      { label: 'Zhihu', url: 'https://www.zhihu.com/people/ldio-79', ariaLabel: 'Zhihu', icon: 'assets/images/icons/zhihu.svg' }
     ],
     cvLinks: [
       { label: { zh: 'CV (EN)', en: 'CV (EN)' }, url: '#' },

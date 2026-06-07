@@ -471,13 +471,24 @@
 
     var socialHtml = profile.socials
       .map(function (social) {
+        var socialLabel = social.ariaLabel || social.label;
+        var socialContent = social.icon
+          ? (
+            '<img class="social-icon" src="' +
+            escapeAttr(social.icon) +
+            '" alt="" aria-hidden="true" loading="lazy" decoding="async" />'
+          )
+          : '<span class="social-label">' + escapeHTML(social.label) + '</span>';
+
         return (
-          '<li><a href="' +
+          '<li><a class="social-link" href="' +
           escapeAttr(social.url) +
           '" target="_blank" rel="noopener noreferrer" aria-label="' +
-          escapeAttr(social.ariaLabel || social.label) +
+          escapeAttr(socialLabel) +
+          '" title="' +
+          escapeAttr(socialLabel) +
           '">' +
-          escapeHTML(social.label) +
+          socialContent +
           '</a></li>'
         );
       })

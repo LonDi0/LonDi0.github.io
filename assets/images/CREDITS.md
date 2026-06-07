@@ -60,6 +60,12 @@
 - Note: `swu-logo0603.png` is the official white-on-transparent header logo; `swu-wordmark-official-zh.png` is a local crop of the Chinese school-name wordmark and color-normalized for light theme display.
 - Rights: University trademark/copyright may apply; usage should comply with the school's policy.
 
+11. `icons/github.svg` / `icons/google-scholar.svg` / `icons/bilibili.svg` / `icons/zhihu.svg`
+- Source: Simple Icons.
+- Source URL: `https://github.com/simple-icons/simple-icons`.
+- License: CC0-1.0 for the icon SVG files from Simple Icons.
+- Note: Platform names and logos may still be trademarks of their respective owners.
+
 ## Notes
 
 - No external copyrighted images from the reference site are used.
